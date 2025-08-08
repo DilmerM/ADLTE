@@ -60,7 +60,7 @@ app.use('/personas', require('./Metodos_Crud/Personas.js')(mysqlConnection));
 
 // Módulo Geolocalización (Dilmer)
 const geolocalizacionRoutes = require('./Metodos_Crud/Geolocalizacion.js');
-app.use('/Geolocalizacion', geolocalizacionRoutes);
+app.use('/api/geolocalizacion', geolocalizacionRoutes);
 
 // Módulo Reservas (Sarai)
 const reservasRoutes = require('./Metodos_Crud/Reservas.js');

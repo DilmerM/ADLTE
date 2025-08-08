@@ -208,4 +208,193 @@ router.patch('/perfil/actualizar/:id_usuario', upload.single('photo'), (req, res
     });
 });
 
+router.get('/perfil-completo/:id', (req, res) => {
+    const idUsuario = req.params.id;
+
+    const sql = "CALL SP_ObtenerPerfilCompletoUsuario(?)";
+
+    pool.query(sql, [idUsuario], (err, rows, fields) => {
+        if (!err) {
+            if (rows && rows[0] && rows[0][0]) {
+                res.json({ usuario: rows[0][0] });
+            } else {
+                res.status(404).json({ message: "Usuario no encontrado en la base de datos." });
+            }
+        } else {
+            console.error("Error al ejecutar SP_ObtenerPerfilCompletoUsuario:", err);
+            res.status(500).send('Error al obtener los datos del perfil desde la base de datos.');
+        }
+    });
+});
+
+
+// 1. Endpoint para actualizar información personal (Versión corregida)
+router.post('/actualizar-info-personal', (req, res) => {
+    try {
+        // Verificación de body
+        if (!req.body) {
+            return res.status(400).json({
+                success: false,
+                error: 'Cuerpo de la solicitud vacío',
+                codigo_error: 'API-001'
+            });
+        }
+
+        // Extraer campos con valores por defecto
+        const body = req.body;
+        const id_persona = body.id_persona || body.id_usuario; // Acepta ambos campos
+        
+        if (!id_persona) {
+            return res.status(400).json({
+                success: false,
+                error: 'Se requiere id_persona o id_usuario',
+                codigo_error: 'API-002'
+            });
+        }
+
+        // Ejecutar procedimiento
+        const sql = "CALL SP_ActualizarInformacionPersonal(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        pool.query(sql, [
+            id_persona,
+            body.primer_nombre || '',
+            body.segundo_nombre || null,
+            body.primer_apellido || '',
+            body.segundo_apellido || null,
+            body.tipo_identificacion || 'DNI',
+            body.numero_identificacion || '',
+            body.fecha_nacimiento || null,
+            body.genero || 'Masculino',
+            body.nacionalidad || '',
+            body.estado_civil || 'Soltero/a'
+        ], (err, results) => {
+            if (err) {
+                console.error("Error en BD:", err);
+                return res.status(500).json({ 
+                    success: false,
+                    error: 'Error en la base de datos',
+                    detalle: err.message
+                });
+            }
+            
+            res.json({ 
+                success: true,
+                message: "Información actualizada"
+            });
+        });
+
+    } catch (error) {
+        console.error("Error inesperado:", error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor'
+        });
+    }
+});
+
+// 2. Endpoint para actualizar/crear dirección (Versión mejorada)
+router.post('/actualizar-direccion', (req, res) => {
+    try {
+        // Verificación de body
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'El cuerpo de la solicitud no puede estar vacío',
+                codigo_error: 'API-001'
+            });
+        }
+
+        // Destructuración con valores por defecto
+        const {
+            id_persona,
+            id_direccion = null,
+            ciudad = '',
+            estado = '',
+            cod_postal = '',
+            pais = '',
+            id_direccion_geo = null
+        } = req.body;
+
+        // Validación de campos obligatorios
+        const camposObligatorios = [
+            { campo: id_persona, nombre: 'id_persona' },
+            { campo: ciudad, nombre: 'ciudad' },
+            { campo: pais, nombre: 'pais' }
+        ];
+
+        const camposFaltantes = camposObligatorios.filter(item => !item.campo);
+
+        if (camposFaltantes.length > 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Campos obligatorios faltantes',
+                campos_faltantes: camposFaltantes.map(item => item.nombre),
+                codigo_error: 'API-002'
+            });
+        }
+
+        // Configuración de la consulta según sea actualización o inserción
+        let sql, params;
+
+        if (id_direccion) {
+            sql = "CALL SP_ActualizarDireccionUsuario(?, ?, ?, ?, ?, ?, ?)";
+            params = [
+                id_direccion,
+                id_persona,
+                ciudad,
+                estado,
+                cod_postal,
+                pais,
+                id_direccion_geo
+            ];
+        } else {
+            sql = "CALL SP_InsertarDireccionUsuario(?, ?, ?, ?, ?, ?, @nuevo_id); SELECT @nuevo_id AS id_direccion;";
+            params = [
+                id_persona,
+                ciudad,
+                estado,
+                cod_postal,
+                pais,
+                id_direccion_geo
+            ];
+        }
+
+        // Ejecución de la consulta
+        pool.query(sql, params, (err, results) => {
+            if (err) {
+                console.error("Error en base de datos:", err);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al procesar la solicitud',
+                    detalle: err.sqlMessage || err.message,
+                    codigo_error: 'DB-001'
+                });
+            }
+
+            // Preparar respuesta
+            const response = {
+                success: true,
+                message: id_direccion 
+                    ? "Dirección actualizada correctamente" 
+                    : "Dirección creada correctamente"
+            };
+
+            // Si fue una inserción, agregar el nuevo ID
+            if (!id_direccion && results[1]?.[0]?.id_direccion) {
+                response.id_direccion = results[1][0].id_direccion;
+            }
+
+            res.json(response);
+        });
+
+    } catch (error) {
+        console.error("Error inesperado:", error);
+        res.status(500).json({
+            success: false,
+            error: 'Error interno del servidor',
+            codigo_error: 'SERVER-001'
+        });
+    }
+});
+
 module.exports = router;

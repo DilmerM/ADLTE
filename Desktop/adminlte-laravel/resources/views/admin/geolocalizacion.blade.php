@@ -72,6 +72,22 @@
                     
                 </div>
             </div>
+<div class="d-flex justify-content-end mb-3">
+    <div class="btn-group" role="group" aria-label="Panel de control de la tabla">
+        <button type="button" id="btn-mode-create" class="btn btn-success">
+            <i class="bi bi-plus-circle-fill me-1"></i> Crear
+        </button>
+        <button type="button" id="btn-mode-view" class="btn btn-outline-primary active">
+            <i class="bi bi-eye-fill me-1"></i> Ver
+        </button>
+        <button type="button" id="btn-mode-delete" class="btn btn-outline-primary">
+            <i class="bi bi-trash-fill me-1"></i> Borrar
+        </button>
+        <button type="button" id="btn-mode-edit" class="btn btn-outline-primary">
+            <i class="bi bi-pencil-fill me-1"></i> Editar
+        </button>
+    </div>
+</div>
 
             {{-- Tabla de Resultados --}}
             <div class="card shadow-sm">
@@ -139,6 +155,69 @@
         </div>
     </div>
 </div>
+<div id="toast-container">
+    </div>
+<div class="d-flex justify-content-end mb-3">
+    <div class="btn-group" role="group" aria-label="Panel de control de la tabla">
+        </div>
+</div>
+<div class="modal fade" id="puntoModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="puntoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="puntoModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="puntoForm">
+                    <input type="hidden" id="punto-id">
+
+                    <div class="mb-3">
+                        <label for="punto-nombre" class="form-label">Nombre del Punto</label>
+                        <input type="text" class="form-control" id="punto-nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="punto-descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="punto-descripcion" rows="3" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="punto-latitud" class="form-label">Latitud</label>
+                            <input type="number" step="any" class="form-control" id="punto-latitud" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="punto-longitud" class="form-label">Longitud</label>
+                            <input type="number" step="any" class="form-control" id="punto-longitud" required>
+                        </div>
+                    </div>
+                    <div id="modal-error" class="alert alert-danger d-none" role="alert"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btn-cancelar-modal">Cancelar</button>
+                
+                <button type="submit" form="puntoForm" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">Confirmar Acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmationModalBody">
+                ¿Estás seguro de que quieres realizar esta acción?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btn-confirm-cancel">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-confirm-accept">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 @stop
 
@@ -156,6 +235,95 @@
 
     {{-- Incluye todos tus estilos CSS existentes --}}
     <style>
+ /* El contenedor que anclará las notificaciones en la esquina */
+    #toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999; /* Asegura que esté por encima de todo */
+        display: flex;
+        flex-direction: column-reverse; /* Las nuevas notificaciones aparecen abajo y empujan las viejas hacia arriba */
+        align-items: flex-end;
+    }
+
+    /* Estilo base para cada notificación toast */
+    .toast-notification {
+        color: #fff;
+        padding: 15px 20px;
+        margin-top: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 350px;
+        max-width: 90vw;
+        animation: slideInFromRight 0.5s ease-out forwards;
+        opacity: 0;
+    }
+
+    /* Colores específicos para éxito y error */
+    .toast-success {
+        background-color: #28a745; /* Verde éxito */
+    }
+
+    .toast-danger {
+        background-color: #dc3545; /* Rojo peligro */
+    }
+
+    /* Botón para cerrar el toast manualmente */
+    .toast-notification .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%); /* Hace el botón blanco */
+        margin-left: 15px;
+    }
+
+    /* Animación de entrada */
+    @keyframes slideInFromRight {
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    /* Animación de salida */
+    .toast-notification.fade-out {
+        animation: fadeOut 0.5s ease-out forwards;
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+    }
+    .action-switcher {
+        cursor: pointer;
+        padding: 0 8px;
+        font-weight: normal;
+        color: #6c757d; /* Color gris de bootstrap */
+        transition: all 0.2s ease-in-out;
+    }
+    .action-switcher.active {
+        font-weight: bold;
+        color: #0d6efd; /* Color primario de bootstrap */
+    }
+    .action-switcher-separator {
+        color: #dee2e6; /* Color de borde de bootstrap */
+        margin: 0 2px;
+    }
+    .main-action-btn i {
+        margin-right: 5px;
+    }
+
+
        html, body {
   height: 100%;
   overflow-x: hidden;
@@ -445,6 +613,7 @@
     </style>
 @stop
 
+
 @push('js')
 
     <script
@@ -456,47 +625,40 @@
         integrity="sha256-XPpPaZlU8S/HWf7FZLAncLg2SAkP8ScUTII89x9D3lY="
         crossorigin="anonymous"></script>
 
-    {{-- Incluye tus scripts JS tal cual estaban antes --}}
     <script>
+    // El script para la tarjeta del clima se mantiene igual
+    document.addEventListener('DOMContentLoaded', function() {
+        const city = 'Comayagüela'; // Actualizado a tu ubicación
+        const url = `https://wttr.in/${city}?format=j1`;
+        const weatherCardBody = document.getElementById('weather-card-body');
 
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('La respuesta de la red no fue correcta.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const location = data.nearest_area[0].areaName[0].value;
+                const temp = data.current_condition[0].temp_C;
+                const description = data.current_condition[0].lang_es[0].value;
 
-// El script para la tarjeta del clima se mantiene igual
-document.addEventListener('DOMContentLoaded', function() {
-    const city = 'Tegucigalpa';
-    const url = `https://wttr.in/${city}?format=j1`;
-    const weatherCardBody = document.getElementById('weather-card-body');
+                weatherCardBody.innerHTML = `
+                    <h2>${location}</h2>
+                    <p style="font-size: 3rem; font-weight: bold; margin: 0;">${temp}°C</p>
+                    <p class="lead text-capitalize">${description}</p>
+                `;
+            })
+            .catch(error => {
+                console.error('Error al obtener el clima:', error);
+                weatherCardBody.innerHTML = `<p class="text-danger">No se pudo cargar el clima.</p>`;
+            });
+    });
 
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('La respuesta de la red no fue correcta.');
-            }
-            return response.json();
-        })
-        .then(data => {
-            const location = data.nearest_area[0].areaName[0].value;
-            const temp = data.current_condition[0].temp_C;
-            const description = data.current_condition[0].lang_es[0].value;
-
-            weatherCardBody.innerHTML = `
-                <h2>${location}</h2>
-                <p style="font-size: 3rem; font-weight: bold; margin: 0;">${temp}°C</p>
-                <p class="lead text-capitalize">${description}</p>
-            `;
-        })
-        .catch(error => {
-            console.error('Error al obtener el clima:', error);
-            weatherCardBody.innerHTML = `<p class="text-danger">No se pudo cargar el clima. Revisa la consola para más detalles.</p>`;
-        });
-
-    // Aquí iría el script para la geolocalización y el buscador.
-});
-
-
-
-
-       // --- INICIO SCRIPT GEOLOCALIZACIÓN ---
+    // --- INICIO SCRIPT GEOLOCALIZACIÓN (SIN CAMBIOS)---
     const btnGetLocation = document.getElementById('btnGetLocation');
+    // ... (el resto de tu código de geolocalización se mantiene aquí intacto)
     const latitudeInput = document.getElementById('latitude');
     const longitudeInput = document.getElementById('longitude');
     const addressInput = document.getElementById('address');
@@ -504,7 +666,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const postalcodeInput = document.getElementById('postalcode');
     const countryInput = document.getElementById('country');
     const statusDiv = document.getElementById('status');
-
     if (btnGetLocation) {
         btnGetLocation.addEventListener('click', () => {
             const allInputs = [latitudeInput, longitudeInput, addressInput, cityInput, postalcodeInput, countryInput];
@@ -533,8 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
         longitudeInput.value = longitude.toFixed(6);
         await getAddressFromCoordinates(latitude, longitude);
     }
-
-    async function getAddressFromCoordinates(lat, lon) {
+     async function getAddressFromCoordinates(lat, lon) {
         showStatus('<div class="alert alert-info d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Buscando dirección...</div>', 'info');
         try {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
@@ -588,110 +748,325 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+
     document.addEventListener('DOMContentLoaded', () => {
-    // ===================================================================
-// =========== LÓGICA DEL BUSCADOR DE PUNTOS GEOGRÁFICOS =============
+        // ===================================================================
+        // =========== LÓGICA DEL CRUD COMPLETO DE LA TABLA ==================
+        // ===================================================================
+
+        // --- Referencias a Elementos del DOM ---
+        const searchInput = document.getElementById('searchInput');
+        const tableBody = document.getElementById('resultsTableBody');
+        const loadingState = document.getElementById('loading-state');
+        const noResultsState = document.getElementById('no-results-state');
+const apiUrl = 'http://localhost:3000/api/Geolocalizacion/puntos_geograficos';
+        let allPuntos = [];
+
+        // --- Referencias a los 4 botones de control y estado ---
+        const btnModeCreate = document.getElementById('btn-mode-create');
+        const btnModeView = document.getElementById('btn-mode-view');
+        const btnModeDelete = document.getElementById('btn-mode-delete');
+        const btnModeEdit = document.getElementById('btn-mode-edit');
+        const modeButtons = [btnModeView, btnModeDelete, btnModeEdit]; // Los que cambian de modo
+        let currentMode = 'view'; 
+
+        // --- Referencias a los elementos del Modal ---
+        const puntoModalEl = document.getElementById('puntoModal');
+        const puntoModal = new bootstrap.Modal(puntoModalEl);
+        const puntoModalLabel = document.getElementById('puntoModalLabel');
+        const puntoForm = document.getElementById('puntoForm');
+        const puntoIdInput = document.getElementById('punto-id');
+        const puntoNombreInput = document.getElementById('punto-nombre');
+        const puntoDescripcionInput = document.getElementById('punto-descripcion');
+        const puntoLatitudInput = document.getElementById('punto-latitud');
+        const puntoLongitudInput = document.getElementById('punto-longitud');
+        const modalErrorDiv = document.getElementById('modal-error');
+
+        // --- Referencias a los elementos del Modal de Confirmación ---
+        const confirmationModalEl = document.getElementById('confirmationModal');
+        const confirmationModal = new bootstrap.Modal(confirmationModalEl);
+        const confirmationModalBody = document.getElementById('confirmationModalBody');
+        const btnConfirmAccept = document.getElementById('btn-confirm-accept');
+        const btnConfirmCancel = document.getElementById('btn-confirm-cancel');
+        const btnCancelModal = document.getElementById('btn-cancelar-modal');
+        if (btnCancelModal) {
+            btnCancelModal.addEventListener('click', () => {
+                puntoModal.hide();
+            });
+        }
+// ===================================================================
+// ================== INICIO: FUNCIÓN DE NOTIFICACIONES TOAST ==================
 // ===================================================================
 
-const searchInput = document.getElementById('searchInput');
-const tableBody = document.getElementById('resultsTableBody');
-const loadingState = document.getElementById('loading-state');
-const noResultsState = document.getElementById('no-results-state');
-
-let allPuntos = [];
-
-function renderTable(puntos) {
-    tableBody.innerHTML = '';
-    noResultsState.classList.add('d-none');
-
-    if (puntos.length === 0) {
-        noResultsState.classList.remove('d-none');
-        noResultsState.textContent = 'No se encontraron resultados para tu búsqueda.';
+/**
+ * Muestra una notificación tipo toast en la esquina inferior derecha.
+ * @param {string} message - El mensaje a mostrar. Puede contener HTML.
+ * @param {string} type - El tipo de alerta ('success' para verde, 'danger' para rojo).
+ */
+function showCrudAlert(message, type = 'success') {
+    // 1. Encuentra el contenedor principal donde vivirán los toasts.
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        console.error('El contenedor de toasts (#toast-container) no se encuentra en el DOM.');
         return;
     }
+    
+    // 2. Crea el elemento HTML para la nueva notificación.
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    
+    // 3. Define el contenido del toast, incluyendo el mensaje y un botón de cierre.
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button type="button" class="btn-close" aria-label="Close"></button>
+    `;
 
-    puntos.forEach(punto => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${punto.id}</td>
-            <td>${punto.nombre}</td>
-            <td>${punto.descripcion}</td>
-            <td class="text-center">
-                <button class="btn btn-sm btn-info btn-view-location" data-lat="${punto.latitud}" data-lon="${punto.longitud}" title="Ver en Google Maps">
-                    <i class="bi bi-map-fill"></i> Ver
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(row);
+    // 4. Añade el nuevo toast al contenedor. La animación de entrada se activa por CSS.
+    toastContainer.appendChild(toast);
+
+    // 5. Define una función para remover el toast de forma elegante.
+    const removeToast = () => {
+        // Añade la clase que activa la animación de salida.
+        toast.classList.add('fade-out');
+        
+        // Escucha el final de la animación para remover el elemento del DOM de forma segura.
+        toast.addEventListener('animationend', () => {
+            // Se asegura de que el elemento todavía existe antes de intentar removerlo.
+            if (toast.parentNode === toastContainer) {
+                toastContainer.removeChild(toast);
+            }
+        });
+    };
+
+    // 6. Si es una notificación de éxito, se oculta sola después de 5 segundos.
+    if (type === 'success') {
+        setTimeout(removeToast, 5000);
+    }
+
+    // 7. Permite que el usuario cierre el toast manualmente haciendo clic en la 'X'.
+    toast.querySelector('.btn-close').addEventListener('click', removeToast);
+}
+
+// ===================================================================
+// ============= INICIO: NUEVA FUNCIÓN DE CONFIRMACIÓN ===============
+// ===================================================================
+/**
+ * Muestra un modal de confirmación y devuelve una promesa.
+ * @param {string} message - La pregunta de confirmación a mostrar.
+ * @returns {Promise<boolean>} - Resuelve en true si se acepta, rechaza en false si se cancela.
+ */
+function showConfirmationModal(message) {
+    return new Promise((resolve, reject) => {
+        confirmationModalBody.textContent = message;
+        confirmationModal.show();
+
+        // Limpiamos listeners anteriores para evitar duplicados
+        let acceptHandler, cancelHandler;
+
+        acceptHandler = () => {
+            btnConfirmAccept.removeEventListener('click', acceptHandler);
+            btnConfirmCancel.removeEventListener('click', cancelHandler);
+            confirmationModal.hide();
+            resolve(true);
+        };
+        
+        cancelHandler = () => {
+            btnConfirmAccept.removeEventListener('click', acceptHandler);
+            btnConfirmCancel.removeEventListener('click', cancelHandler);
+            confirmationModal.hide();
+            reject(false);
+        };
+
+        btnConfirmAccept.addEventListener('click', acceptHandler);
+        btnConfirmCancel.addEventListener('click', cancelHandler);
     });
 }
+        // ===== FUNCIÓN renderTable MODIFICADA PARA 4 MODOS =====
+        function renderTable(puntos) {
+            tableBody.innerHTML = '';
+            noResultsState.classList.add('d-none');
+            if (puntos.length === 0) {
+                noResultsState.classList.remove('d-none');
+                noResultsState.textContent = 'No se encontraron resultados.';
+                return;
+            }
 
-async function fetchPuntosGeograficos() {
-    loadingState.classList.remove('d-none');
-    tableBody.innerHTML = '';
-    noResultsState.classList.add('d-none');
+            puntos.forEach(punto => {
+                const row = document.createElement('tr');
+                let actionButtonHtml = '';
 
-    const apiUrl = 'http://localhost:3000/Geolocalizacion/puntos_geograficos';
+                switch (currentMode) {
+                    case 'delete':
+                        actionButtonHtml = `<button class="btn btn-sm btn-danger row-action-btn" data-action="delete" title="Borrar"><i class="bi bi-trash-fill"></i> Borrar</button>`;
+                        break;
+                    case 'edit':
+                        actionButtonHtml = `<button class="btn btn-sm btn-warning row-action-btn" data-action="edit" title="Editar"><i class="bi bi-pencil-fill"></i> Editar</button>`;
+                        break;
+                    case 'view':
+                    default:
+                        actionButtonHtml = `<button class="btn btn-sm btn-info row-action-btn" data-action="view" title="Ver en Mapa"><i class="bi bi-map-fill"></i> Ver</button>`;
+                        break;
+                }
 
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error(`Error de red: ${response.statusText}`);
-        const data = await response.json();
-        if (!data || !data[0]) throw new Error("Formato de API inesperado.");
-
-        allPuntos = data[0].map(punto => ({
-            id: punto.id_punto_geografico,
-            nombre: punto.nombre_punto,
-            descripcion: punto.descripcion,
-            latitud: punto.latitud,
-            longitud: punto.longitud
-        }));
-
-        renderTable(allPuntos);
-    } catch (error) {
-        console.error('Error al obtener datos de la API:', error);
-        noResultsState.textContent = 'Error al cargar los datos. Revisa la consola o el estado de la API.';
-        noResultsState.classList.remove('d-none');
-    } finally {
-        loadingState.classList.add('d-none');
-    }
-}
-
-searchInput.addEventListener('input', (event) => {
-    const searchTerm = event.target.value.toLowerCase();
-
-    if (allPuntos.length === 0 && searchTerm) {
-        noResultsState.textContent = 'Los datos aún no han cargado o no hay puntos para filtrar.';
-        noResultsState.classList.remove('d-none');
-        return;
-    }
-
-    const filteredPuntos = allPuntos.filter(punto =>
-        (punto.nombre && punto.nombre.toLowerCase().includes(searchTerm)) ||
-        (punto.descripcion && punto.descripcion.toLowerCase().includes(searchTerm))
-    );
-
-    renderTable(filteredPuntos);
-});
-
-tableBody.addEventListener('click', (event) => {
-    const button = event.target.closest('.btn-view-location');
-    if (button) {
-        const lat = button.dataset.lat;
-        const lon = button.dataset.lon;
-        if (lat && lon) {
-            // ✅ URL corregida para abrir Google Maps con coordenadas dinámicas
-            const url = `https://www.google.com/maps?q=${lat},${lon}`;
-            window.open(url, '_blank');
+                row.innerHTML = `
+                    <td>${punto.id}</td>
+                    <td>${punto.nombre}</td>
+                    <td>${punto.descripcion}</td>
+                    <td class="text-center" data-id="${punto.id}">
+                        ${actionButtonHtml}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
         }
-    }
-});
 
-// ✅ Llama a la API automáticamente al cargar la página
-fetchPuntosGeograficos();
+        async function fetchPuntosGeograficos() {
+            loadingState.classList.remove('d-none');
+            tableBody.innerHTML = '';
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`Error de red: ${response.statusText}`);
+                const data = await response.json();
+                if (!data || !data[0]) throw new Error("Formato de API inesperado.");
+                allPuntos = data[0].map(punto => ({
+                    id: punto.id_punto_geografico,
+                    nombre: punto.nombre_punto,
+                    descripcion: punto.descripcion,
+                    latitud: punto.latitud,
+                    longitud: punto.longitud
+                }));
+                renderTable(allPuntos);
+            } catch (error) {
+                console.error('Error al obtener datos de la API:', error);
+                noResultsState.textContent = 'Error al cargar los datos.';
+                noResultsState.classList.remove('d-none');
+            } finally {
+                loadingState.classList.add('d-none');
+            }
+        }
 
+        searchInput.addEventListener('input', (event) => {
+            const searchTerm = event.target.value.toLowerCase();
+            const filteredPuntos = allPuntos.filter(punto =>
+                (punto.nombre && punto.nombre.toLowerCase().includes(searchTerm)) ||
+                (punto.descripcion && punto.descripcion.toLowerCase().includes(searchTerm))
+            );
+            renderTable(filteredPuntos);
+        });
 
-        // --- INICIO: NUEVO SCRIPT PARA INTERACCIÓN DE TARJETAS DE PARQUES Y MAPA ---
+        // ===== LISTENERS PARA LOS 4 BOTONES DE CONTROL =====
+        modeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const newMode = button.id.split('-')[2];
+                if (currentMode === newMode) return;
+                currentMode = newMode;
+                modeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                renderTable(allPuntos);
+            });
+        });
+
+        btnModeCreate.addEventListener('click', () => {
+            puntoForm.reset();
+            puntoIdInput.value = '';
+            puntoModalLabel.textContent = 'Crear Nuevo Punto Geográfico';
+            modalErrorDiv.classList.add('d-none');
+            puntoModal.show();
+        });
+
+         // ===== Listener de la tabla ACTUALIZADO con el nuevo modal de confirmación =====
+        tableBody.addEventListener('click', async (event) => {
+            const button = event.target.closest('.row-action-btn');
+            if (!button) return;
+
+            const puntoId = button.closest('td').dataset.id;
+            const action = button.dataset.action;
+            const punto = allPuntos.find(p => p.id == puntoId);
+            if (!punto) return;
+
+            switch (action) {
+                case 'view':
+                    if (punto.latitud && punto.longitud) {
+                        window.open(`https://www.google.com/maps?q=${punto.latitud},${punto.longitud}`, '_blank');
+                    }
+                    break;
+                case 'edit':
+                    puntoForm.reset();
+                    modalErrorDiv.classList.add('d-none');
+                    puntoModalLabel.textContent = `Editando Punto #${punto.id}`;
+                    puntoIdInput.value = punto.id;
+                    puntoNombreInput.value = punto.nombre;
+                    puntoDescripcionInput.value = punto.descripcion;
+                    puntoLatitudInput.value = punto.latitud;
+                    puntoLongitudInput.value = punto.longitud;
+                    puntoModal.show();
+                    break;
+                case 'delete':
+                    try {
+                        // REEMPLAZO de confirm() por nuestro nuevo modal.
+                        await showConfirmationModal(`¿Seguro que quieres borrar "${punto.nombre}"?`);
+                        
+                        // Si el usuario acepta, el código continúa aquí.
+                        const response = await fetch(`${apiUrl}/${puntoId}`, { method: 'DELETE' });
+                        if (!response.ok) throw new Error('El servidor no pudo borrar el registro.');
+                        
+                        await fetchPuntosGeograficos();
+                        showCrudAlert(`<strong>¡Éxito!</strong> El punto "${punto.nombre}" ha sido borrado.`, 'success');
+
+                    } catch (error) {
+                        // Si el usuario cancela o hay un error de red, el código entra aquí.
+                        if (error && error.message) {
+                            showCrudAlert(`<strong>Error:</strong> ${error.message}`, 'danger');
+                        } else {
+                            console.log('Borrado cancelado por el usuario.');
+                        }
+                    }
+                    break;
+            }
+        });
+
+        // ===== LISTENER PARA EL FORMULARIO DEL MODAL (INSERT/UPDATE) =====
+        puntoForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const id = puntoIdInput.value;
+            const esUpdate = !!id;
+            const data = {
+                nombre_punto: puntoNombreInput.value,
+                descripcion: puntoDescripcionInput.value,
+                latitud: puntoLatitudInput.value,
+                longitud: puntoLongitudInput.value
+            };
+            const url = esUpdate ? `${apiUrl}/${id}` : apiUrl;
+            const method = esUpdate ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+                    throw new Error(errorData.message);
+                }
+                puntoModal.hide();
+
+                await fetchPuntosGeograficos();
+
+              const successMessage = `<strong>¡Guardado!</strong> El punto "${data.nombre_punto}" se ha ${esUpdate ? 'actualizado' : 'creado'} con éxito.`;
+        showCrudAlert(successMessage, 'success');
+            } catch (error) {
+                modalErrorDiv.textContent = `Error: ${error.message}`;
+                modalErrorDiv.classList.remove('d-none');
+                 // Pero también podemos mostrar una alerta global para mayor visibilidad.
+        showCrudAlert(`<strong>Error al guardar:</strong> ${error.message}`, 'danger');
+            }
+        });
+
+        // Carga inicial de datos
+        fetchPuntosGeograficos();
+
+              // --- INICIO: SCRIPT PARA INTERACCIÓN DE TARJETAS DE PARQUES Y MAPA (SIN CAMBIOS) ---
         const parkButtons = document.querySelectorAll('.park-card-btn');
         const mapIframe = document.getElementById('embedded-map');
 
@@ -732,15 +1107,13 @@ fetchPuntosGeograficos();
                 updateMap(initialLat, initialLon);
             }
         }
-        // --- FIN: NUEVO SCRIPT ---
+        // --- FIN: SCRIPT DE PARQUES (SIN CAMBIOS) ---
 
     });
 
-    // --- SCRIPT PARA EL MAPA MUNDIAL (jsvectormap) ---
+    // --- SCRIPT PARA EL MAPA MUNDIAL (jsvectormap) (SIN CAMBIOS) ---
     if (document.getElementById('world-map')) {
         new jsVectorMap({ selector: '#world-map', map: 'world' });
     }
-    
     </script>
 @endpush
-@push('js')
