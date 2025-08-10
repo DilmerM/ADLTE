@@ -2,94 +2,208 @@ const mysql = require('mysql');
 const express = require('express');
 const router = express.Router();
 
-var mysqlConnection = mysql.createConnection({
+const mysqlConnection = mysql.createPool({
     host: '142.44.161.115',
     user: '25-1700P4PAC2E2',
     password: '25-1700P4PAC2E2#e67',
     database: '25-1700P4PAC2E2',
-    multipleStatements: true
+    multipleStatements: true,
+    connectionLimit: 10,
+    waitForConnections: true
 });
 
-// GET todas las reservas http://localhost:3000/reservas        trae todas las reservas 
-router.get('/', (req, res) => {
-    mysqlConnection.query('SELECT * FROM Reservas', (err, results) => {
-        if (err) return res.status(500).json({ error: err });
-        res.json(results);
-    });
-});
-
-// GET una reserva por ID   http://localhost:3000/reservas/26    trae la reserva de cliente por id
-router.get('/:id', (req, res) => {
-    const { id } = req.params;
-    mysqlConnection.query('CALL SP_SeleccionarReservaDetallePorID(?)', [id], (err, results) => {
-        if (err) return res.status(500).json({ error: err });
-        res.json(results[0]);
-    });
-});
-
-// POST crear una nueva reserva  http://localhost:3000/reservas
-router.post('/', (req, res) => {
-    const datos = req.body;
-    const sql = 'CALL SP_InsertarReserva(?, ?, ?, ?, ?, ?, ?, ?, ?, @id_reserva); SELECT @id_reserva AS id_reserva;';
+// Middleware de autenticación
+const authenticate = (req, res, next) => {
+    const token = req.headers['auth-token'];
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Token de autenticación requerido' });
+    }
+    
+    const tokenParts = token.split('-');
+    if (tokenParts.length < 5 || tokenParts[0] !== 'simple' || tokenParts[1] !== 'token' || tokenParts[2] !== 'for' || tokenParts[3] !== 'user') {
+        return res.status(401).json({ success: false, message: 'Token inválido' });
+    }
+    
+    const userId = parseInt(tokenParts[4]);
+    if (isNaN(userId)) {
+        return res.status(401).json({ success: false, message: 'Token inválido - ID de usuario no numérico' });
+    }
+    
     mysqlConnection.query(
-        sql,
-        [
-            datos.id_servicio,
-            datos.id_persona_reserva,
-            datos.id_ubicacion_reserva,
-            datos.id_evento,
-            datos.id_actividad,
-            datos.fecha_hora_inicio,
-            datos.fecha_hora_fin,
-            datos.estado_reserva,
-            datos.costo_total
-        ],
+        'SELECT id_persona FROM Usuarios WHERE id_usuario = ?',
+        [userId],
         (err, results) => {
-            if (err) return res.status(500).json({ error: err });
-            res.json({ mensaje: 'Reserva creada', id_reserva: results[1][0].id_reserva });
+            if (err) {
+                console.error('Error al verificar usuario:', err);
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Error al verificar usuario en la base de datos' 
+                });
+            }
+            
+            if (!results || results.length === 0) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: 'Usuario no encontrado en la base de datos' 
+                });
+            }
+            
+            req.userId = userId;
+            req.personaId = results[0].id_persona;
+            next();
         }
     );
-});
+};
 
+// POST crear reserva
+router.post('/', authenticate, (req, res) => {
+    const {
+        id_servicio,
+        id_ubicacion_reserva,
+        id_evento,
+        id_actividad,
+        fecha_hora_inicio,
+        fecha_hora_fin,
+        estado_reserva,
+        costo_total
+    } = req.body;
 
-// PUT actualizar reserva por ID http://localhost:3000/reservas/26  <-- reemplaza el (26) por id cualquiera
-router.put('/:id', (req, res) => {
-    const { id } = req.params;
-    const datos = req.body;
-    mysqlConnection.query(
-        'CALL SP_ActualizarReserva(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [
-            id,
-            datos.id_servicio,
-            datos.id_persona_reserva,
-            datos.id_ubicacion_reserva,
-            datos.id_evento,
-            datos.id_actividad,
-            datos.fecha_hora_inicio,
-            datos.fecha_hora_fin,
-            datos.estado_reserva,
-            datos.costo_total
-        ],
-        (err) => {
-            if (err) return res.status(500).json({ error: err });
-            res.json({ mensaje: 'Reserva actualizada correctamente' });
+    // Validación de campos requeridos
+    if (!id_servicio || !fecha_hora_inicio || !id_ubicacion_reserva) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'ID de servicio, ubicación y fecha/hora de inicio son requeridos' 
+        });
+    }
+
+    // Validar el estado de la reserva
+    const estados_validos = ['pendiente', 'confirmada', 'completada', 'cancelada'];
+    if (estado_reserva && !estados_validos.includes(estado_reserva.toLowerCase())) {
+        return res.status(400).json({
+            success: false,
+            message: 'Estado de reserva inválido. Estados permitidos: ' + estados_validos.join(', ')
+        });
+    }
+
+    // Validar fechas
+    const inicio = new Date(fecha_hora_inicio);
+    const fin = fecha_hora_fin ? new Date(fecha_hora_fin) : null;
+    
+    if (isNaN(inicio.getTime())) {
+        return res.status(400).json({
+            success: false,
+            message: 'Fecha de inicio inválida'
+        });
+    }
+
+    if (fin && (isNaN(fin.getTime()) || fin <= inicio)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Fecha de fin debe ser posterior a la fecha de inicio'
+        });
+    }
+
+    // Validar que el servicio existe
+    mysqlConnection.query('SELECT id_servicio FROM Servicios WHERE id_servicio = ?', 
+        [id_servicio], 
+        (err, serviceResults) => {
+            if (err || serviceResults.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El servicio especificado no existe'
+                });
+            }
+
+            // Validar que la ubicación existe
+            mysqlConnection.query('SELECT id_ubicacion FROM Ubicaciones WHERE id_ubicacion = ?', 
+                [id_ubicacion_reserva], 
+                (err, locationResults) => {
+                    if (err || locationResults.length === 0) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'La ubicación especificada no existe'
+                        });
+                    }
+
+                    // Validar evento si se proporciona
+                    if (id_evento) {
+                        mysqlConnection.query('SELECT id_evento FROM Eventos WHERE id_evento = ?', 
+                            [id_evento], 
+                            (err, eventResults) => {
+                                if (err || eventResults.length === 0) {
+                                    return res.status(400).json({
+                                        success: false,
+                                        message: 'El evento especificado no existe'
+                                    });
+                                }
+                                realizarInsert();
+                            }
+                        );
+                    } else {
+                        realizarInsert();
+                    }
+                }
+            );
         }
     );
-});
 
-// Eliminar una reserva por ID desde la API       http://localhost:3000/reservas/26
-router.delete('/:id', (req, res) => {
-    const id = req.params.id;
-    const sql = "CALL SP_EliminarReserva(?)";
+    // Función para realizar el insert
+    const realizarInsert = () => {
+        const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        
+        mysqlConnection.query(
+            `INSERT INTO Reservas (
+                id_servicio,
+                id_persona_reserva,
+                id_ubicacion_reserva,
+                id_evento,
+                id_actividad,
+                fecha_hora_inicio,
+                fecha_hora_fin,
+                estado_reserva,
+                costo_total,
+                fecha_creacion,
+                ultima_actualizacion
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                parseInt(id_servicio),
+                req.personaId,
+                parseInt(id_ubicacion_reserva),
+                id_evento ? parseInt(id_evento) : null,
+                id_actividad ? parseInt(id_actividad) : null,
+                fecha_hora_inicio,
+                fecha_hora_fin || null,
+                estado_reserva || 'pendiente',
+                costo_total ? parseFloat(costo_total) : null,
+                now,
+                now
+            ],
+            (err, results) => {
+                if (err) {
+                    console.error('Error en la base de datos:', err);
+                    return res.status(500).json({ 
+                        success: false, 
+                        message: 'Error en la base de datos',
+                        error: err.message 
+                    });
+                }
 
-    mysqlConnection.query(sql, [id], (err, results) => {
-        if (!err) {
-            res.json({ mensaje: "Reserva eliminada correctamente" });
-        } else {
-            console.error("Error al eliminar la reserva:", err);
-            res.status(500).send('Error al eliminar la reserva');
-        }
-    });
+                if (!results || !results.insertId) {
+                    return res.status(500).json({
+                        success: false,
+                        message: 'No se pudo crear la reserva'
+                    });
+                }
+
+                res.status(201).json({
+                    success: true,
+                    id_reserva: results.insertId,
+                    message: 'Reserva creada exitosamente'
+                });
+            }
+        );
+    };
 });
 
 module.exports = router;

@@ -325,24 +325,22 @@ return [
             'url' => 'admin/blog',
             'can' => 'manage-blog',
         ],
-        // [
-        //     'text' => 'Paginas',
-        //     'url' => 'admin/pages',
-        //     'icon' => 'far fa-fw fa-file',
-        //     'label' => 4,
-        //     'label_color' => 'success',
-        // ],
+        [
+            'text' => 'Página Principal',
+            'url' => 'admin/dashboard',
+            'icon' => 'fas fa-home',
+        ],
         ['header' => 'Configuración de Perfil'],
         [
             'text' => 'Perfil',
             'url' => 'admin/perfil',
             'icon' => 'fas fa-fw fa-user',
         ],
-        [
-            'text' => 'Cambio de contraseña',
-            'url' => 'admin/configuracion_perfil_cambiar_contrasena',
-            'icon' => 'fas fa-fw fa-lock',
-        ],
+        // [
+        //     'text' => 'Cambio de contraseña',
+        //     'url' => 'admin/configuracion_perfil_cambiar_contrasena',
+        //     'icon' => 'fas fa-fw fa-lock',
+        // ],
         [
             'text' => 'Módulos',
             'icon' => 'fas fa-fw fa-share',
@@ -352,12 +350,12 @@ return [
                     'url' => 'admin/geolocalizacion',
                 ],
                   [
-                    'text' => 'Módulo 2',
-                    'url' => '#',
+                    'text' => 'Reservas y Servicios',
+                    'url' => 'admin/reservas_servicios',
                 ],
                  [
-                    'text' => 'Módulo 3',
-                    'url' => '#',
+                    'text' => 'Administración y control',
+                    'url' => 'admin/administracionControl',
                 ],
                  [
                     'text' => 'Módulo 4',
@@ -368,8 +366,8 @@ return [
                     'url' => '#',
                 ],
                  [
-                    'text' => 'Módulo 6',
-                    'url' => '#',
+                    'text' => 'Reportes',
+                    'url' => 'admin/reporte',
                 ],
                 // [
                 //     'text' => 'level_one',

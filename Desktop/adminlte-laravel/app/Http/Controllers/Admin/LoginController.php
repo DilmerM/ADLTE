@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller; // <-- AGREGA ESTA LÍNEA
+use App\Http\Controllers\Controller;  
 
 class LoginController extends Controller
 {
@@ -11,7 +11,6 @@ class LoginController extends Controller
      */
     public function index()
     {
-        // El nombre de la vista debe coincidir con tu archivo .blade.php
         return view('login');
     }
 }

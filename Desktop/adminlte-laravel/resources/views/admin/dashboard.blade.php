@@ -137,7 +137,7 @@
 {{-- SECCIÓN INFERIOR: GALERÍA DE IMÁGENES --}}
 <section id="gallery-section" class="gallery-section py-5 mt-4">
     <div class="container-fluid">
-        <h2 class="text-center fw-bold mb-5 sans-serif-font">Galería de Aventuras</h2>
+        <h2 class="text-center fw-bold mb-5 sans-serif-font">Recuerdos Inolvidables</h2>
         <div class="masonry-grid">
             @php
                 $images = [

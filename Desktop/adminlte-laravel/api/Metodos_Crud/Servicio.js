@@ -1,8 +1,39 @@
 const mysql = require('mysql');
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
 
-var mysqlConnection = mysql.createConnection({
+// Configuración de multer para el manejo de imágenes
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, '../../public/images/imageServicios/'));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('No es un archivo de imagen válido'), false);
+    }
+};
+
+const upload = multer({ 
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // Límite de 10MB
+    }
+});
+
+// Se crea un pool de conexiones en lugar de una única conexión
+const pool = mysql.createPool({
+    connectionLimit: 10,
     host: '142.44.161.115',
     user: '25-1700P4PAC2E2',
     password: '25-1700P4PAC2E2#e67',
@@ -10,109 +41,199 @@ var mysqlConnection = mysql.createConnection({
     multipleStatements: true
 });
 
-// POST insert crear un nuevo servicio
+// POST insertar un nuevo servicio
 router.post('/', (req, res) => {
-    const {
-        nombre_servicio,
-        descripcion,
-        tipo_servicio,
-        costo_base,
-        duracion_promedio_minutos,
-        disponible_online
-    } = req.body;
-
-    const sql = `CALL SP_InsertarServicio(?, ?, ?, ?, ?, ?, @p_id_servicio); SELECT @p_id_servicio AS id_servicio;`;
-
-    mysqlConnection.query(sql, [
-        nombre_servicio,
-        descripcion,
-        tipo_servicio,
-        costo_base,
-        duracion_promedio_minutos,
-        disponible_online
-    ], (err, results) => {
-        if (err) {
-            console.error('Error al insertar servicio:', err);
-            return res.status(500).json({ error: 'Error al insertar el servicio' });
+    upload.single('imagen')(req, res, function(err) {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({
+                    error: 'Archivo demasiado grande',
+                    message: 'El tamaño máximo permitido es de 10MB'
+                });
+            }
+            return res.status(400).json({
+                error: 'Error al subir el archivo',
+                message: err.message
+            });
+        } else if (err) {
+            return res.status(500).json({
+                error: 'Error al procesar la solicitud',
+                message: err.message
+            });
         }
-        const id_servicio = results[1][0].id_servicio;
-        res.status(201).json({
-            message: 'Servicio creado correctamente',
-            id_servicio
+
+        const {
+            nombre_servicio,
+            descripcion,
+            tipo_servicio,
+            costo_base,
+            duracion_promedio_minutos
+        } = req.body;
+        
+        // Obtener la ruta de la imagen si se subió una
+        const ruta_imagen = req.file ? `/images/imageServicios/${req.file.filename}` : null;
+
+        // Validación de parámetros requeridos
+        if (!nombre_servicio || !descripcion || !tipo_servicio ||
+            costo_base === undefined || duracion_promedio_minutos === undefined) {
+            return res.status(400).json({
+                error: 'Faltan parámetros requeridos',
+                campos_requeridos: [
+                    'nombre_servicio',
+                    'descripcion',
+                    'tipo_servicio',
+                    'costo_base',
+                    'duracion_promedio_minutos'
+                ]
+            });
+        }
+
+        const sql = `CALL SP_InsertarServicio(?, ?, ?, ?, ?, ?, @p_id_servicio); SELECT @p_id_servicio AS id_servicio;`;
+
+        pool.query(sql, [
+            nombre_servicio,
+            descripcion,
+            tipo_servicio,
+            parseFloat(costo_base),
+            parseInt(duracion_promedio_minutos),
+            ruta_imagen
+        ], (err, results) => {
+            if (err) {
+                console.error('Error al insertar servicio:', err);
+                return res.status(500).json({
+                    error: 'Error al insertar el servicio',
+                    detalles: err.sqlMessage,
+                    codigo_error: err.code
+                });
+            }
+
+            const id_servicio = results[1][0].id_servicio;
+            res.status(201).json({
+                success: true,
+                message: 'Servicio creado correctamente',
+                id_servicio: id_servicio,
+                ruta_imagen: ruta_imagen
+            });
         });
     });
 });
 
-// GET un servicio por ID       http://localhost:3000/servicios/10   trae todos los servicios por id
-router.get('/:id', (req, res) => {
-    const id_servicio = req.params.id;
-    const sql = 'CALL SP_SeleccionarServicioPorID(?)';
-    mysqlConnection.query(sql, [id_servicio], (err, results) => {
-        if (err) {
-            console.error('Error al obtener servicio:', err);
-            return res.status(500).json({ error: 'Error al obtener el servicio' });
-        }
-        const servicio = results[0][0];
-        if (!servicio) {
-            return res.status(404).json({ message: 'Servicio no encontrado' });
-        }
-        res.json(servicio);
-    });
-});
-
-// PUT actualizar servicio por ID  
-router.put('/:id', (req, res) => {
+// PUT actualizar servicio por ID
+router.put('/:id', upload.single('imagen'), (req, res) => {
     const {
         nombre_servicio,
         descripcion,
         tipo_servicio,
         costo_base,
-        duracion_promedio_minutos,
-        disponible_online
+        duracion_promedio_minutos
     } = req.body;
+
     const id_servicio = req.params.id;
+    const ruta_imagen = req.file ? `/images/imageServicios/${req.file.filename}` : null;
+
+    // Validación de parámetros requeridos
+    if (!nombre_servicio || !descripcion || !tipo_servicio ||
+        costo_base === undefined || duracion_promedio_minutos === undefined) {
+        return res.status(400).json({
+            error: 'Faltan parámetros requeridos',
+            campos_requeridos: ['nombre_servicio', 'descripcion', 'tipo_servicio', 'costo_base', 'duracion_promedio_minutos']
+        });
+    }
+
     const sql = `CALL SP_ActualizarServicio(?, ?, ?, ?, ?, ?, ?)`;
-    mysqlConnection.query(sql, [
+
+    pool.query(sql, [
         id_servicio,
         nombre_servicio,
         descripcion,
         tipo_servicio,
-        costo_base,
-        duracion_promedio_minutos,
-        disponible_online
+        parseFloat(costo_base),
+        parseInt(duracion_promedio_minutos),
+        ruta_imagen
     ], (err, result) => {
         if (err) {
             console.error("Error al actualizar servicio:", err);
-            return res.status(500).json({ error: 'Error al actualizar el servicio' });
+            return res.status(500).json({
+                error: 'Error al actualizar el servicio',
+                detalles: err.sqlMessage,
+                codigo_error: err.code
+            });
         }
-        res.json({ message: 'Servicio actualizado correctamente' });
+
+        res.json({
+            success: true,
+            message: 'Servicio actualizado correctamente',
+            id_servicio: id_servicio,
+            ruta_imagen: ruta_imagen
+        });
     });
 });
 
-// GET todos los servicios      http://localhost:3000/servicios trae todos los servicios 
+// GET todos los servicios
 router.get('/', (req, res) => {
     const sql = 'SELECT * FROM Servicio';
-    mysqlConnection.query(sql, (err, results) => {
-        if (err) return res.status(500).json({ error: err });
+    
+    pool.query(sql, (err, results) => {
+        if (err) {
+            console.error("Error al obtener servicios:", err);
+            return res.status(500).json({
+                error: 'Error al obtener los servicios',
+                detalles: err.sqlMessage
+            });
+        }
         res.json(results);
     });
 });
 
-// Eliminar un servicio por ID desde la API http://localhost:3000/1 <-- reemplace el (1) por el id cualquiera
-router.delete('/:id', (req, res) => {
+// GET servicio por ID
+router.get('/:id', (req, res) => {
     const id = req.params.id;
-    const sql = "CALL SP_EliminarServicio(?)";
-
-    mysqlConnection.query(sql, [id], (err, results) => {
-        if (!err) {
-            res.json({ mensaje: "Servicio eliminado correctamente" });
-        } else {
-            console.error("Error al eliminar el servicio:", err);
-            res.status(500).send('Error al eliminar el servicio');
+    const sql = 'SELECT * FROM Servicio WHERE id_servicio = ?';
+    
+    pool.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error("Error al obtener servicio:", err);
+            return res.status(500).json({
+                error: 'Error al obtener el servicio',
+                detalles: err.sqlMessage
+            });
         }
+        
+        if (results.length === 0) {
+            return res.status(404).json({
+                error: 'Servicio no encontrado'
+            });
+        }
+        
+        res.json(results[0]);
     });
 });
-mysqlConnection.on('error', (err) => {
-    console.error('Error de conexión MySQL:', err.code);
+
+// DELETE servicio por ID (borrado lógico)
+router.delete('/:id', (req, res) => {
+    const id = req.params.id;
+    const sql = 'DELETE FROM Servicio WHERE id_servicio = ?';
+    
+    pool.query(sql, [id], (err, result) => {
+        if (err) {
+            console.error("Error al eliminar servicio:", err);
+            return res.status(500).json({
+                error: 'Error al eliminar el servicio',
+                detalles: err.sqlMessage
+            });
+        }
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                error: 'Servicio no encontrado'
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Servicio eliminado correctamente'
+        });
+    });
 });
+
 module.exports = router;

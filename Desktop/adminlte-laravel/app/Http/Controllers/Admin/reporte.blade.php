@@ -1,10 +1,3 @@
-@extends('admin.app')
-@section('title', 'Generación de Reportes')
-@section('page-title', 'Generación de Reportes')
-
-
-
-@section('content')
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -131,4 +124,3 @@
   </script>
 </body>
 </html>
-@stop

@@ -49,6 +49,14 @@ mysqlConnection.connect((err) => {
 // --- 5. DEFINICIÓN DE RUTAS ---
 // Se cargan todos los módulos de rutas del equipo.
 
+// Importar y usar las rutas de personas
+const personasRoutes = require('./Metodos_Crud/Personas');
+app.use('/api/personas', personasRoutes);
+
+// Importar y usar las rutas de reservas2
+const reservas2Routes = require('./Metodos_Crud/Reservas2');
+app.use('/api/reservas2', reservas2Routes);
+
 const usuariosRoutes = require('./Metodos_Crud/Usuario.js'); // Asegúrate que el nombre del archivo sea 'Usuario.js'
 app.use('/api/usuarios', usuariosRoutes);
 

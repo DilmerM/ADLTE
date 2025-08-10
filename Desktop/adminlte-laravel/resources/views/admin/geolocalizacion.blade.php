@@ -759,7 +759,7 @@
         const tableBody = document.getElementById('resultsTableBody');
         const loadingState = document.getElementById('loading-state');
         const noResultsState = document.getElementById('no-results-state');
-const apiUrl = 'http://localhost:3000/api/Geolocalizacion/puntos_geograficos';
+    const apiUrl = 'http://localhost:3000/api/Geolocalizacion/puntos_geograficos';
         let allPuntos = [];
 
         // --- Referencias a los 4 botones de control y estado ---
