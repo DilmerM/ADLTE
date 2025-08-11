@@ -91,69 +91,77 @@
                             <input type="hidden" id="personal_user_id" name="personal_user_id">
                             <input type="hidden" id="nombre_usuario_hidden" name="nombre_usuario">
                             
-                            <div class="form-group">
-                                <label for="primer_nombre">Primer Nombre *</label>
-                                <input type="text" id="primer_nombre" name="primer_nombre" placeholder="Tu primer nombre" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="segundo_nombre">Segundo Nombre</label>
-                                <input type="text" id="segundo_nombre" name="segundo_nombre" placeholder="Tu segundo nombre (opcional)">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="primer_apellido">Primer Apellido *</label>
-                                <input type="text" id="primer_apellido" name="primer_apellido" placeholder="Tu primer apellido" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="segundo_apellido">Segundo Apellido</label>
-                                <input type="text" id="segundo_apellido" name="segundo_apellido" placeholder="Tu segundo apellido">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="tipo_identificacion">Tipo de Identificación</label>
-                                <select id="tipo_identificacion" name="tipo_identificacion" class="form-control">
-                                    <option value="DNI">DNI</option>
-                                    <option value="Pasaporte">Pasaporte</option>
-                                    <option value="Cedula">Cédula</option>
-                                    <option value="RTN">RTN</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="numero_identificacion">Número de Identificación *</label>
-                                <input type="text" id="numero_identificacion" name="numero_identificacion" placeholder="Número de identificación" required>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="fecha_nacimiento">Fecha de Nacimiento</label>
-                                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="genero">Género</label>
-                                <select id="genero" name="genero" class="form-control">
-                                    <option value="Masculino">Masculino</option>
-                                    <option value="Femenino">Femenino</option>
-                                    <option value="Otro">Otro</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="nacionalidad">Nacionalidad</label>
-                                <input type="text" id="nacionalidad" name="nacionalidad" placeholder="Tu nacionalidad">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="estado_civil">Estado Civil</label>
-                                <select id="estado_civil" name="estado_civil" class="form-control">
-                                    <option value="Soltero/a">Soltero/a</option>
-                                    <option value="Casado/a">Casado/a</option>
-                                    <option value="Divorciado/a">Divorciado/a</option>
-                                    <option value="Viudo/a">Viudo/a</option>
-                                    <option value="Unión libre">Unión libre</option>
-                                </select>
+                            <div class="personal-form-grid">
+                                <!-- Columna Izquierda -->
+                                <div class="form-column">
+                                    <div class="form-group">
+                                        <label for="primer_nombre">Primer Nombre *</label>
+                                        <input type="text" id="primer_nombre" name="primer_nombre" placeholder="Tu primer nombre" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="primer_apellido">Primer Apellido *</label>
+                                        <input type="text" id="primer_apellido" name="primer_apellido" placeholder="Tu primer apellido" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="tipo_identificacion">Tipo de Identificación</label>
+                                        <select id="tipo_identificacion" name="tipo_identificacion" class="form-control">
+                                            <option value="DNI">DNI</option>
+                                            <option value="Pasaporte">Pasaporte</option>
+                                            <option value="Cedula">Cédula</option>
+                                            <option value="RTN">RTN</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+                                        <input type="date" id="fecha_nacimiento" name="fecha_nacimiento">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="nacionalidad">Nacionalidad</label>
+                                        <input type="text" id="nacionalidad" name="nacionalidad" placeholder="Tu nacionalidad">
+                                    </div>
+                                </div>
+
+                                <!-- Columna Derecha -->
+                                <div class="form-column">
+                                    <div class="form-group">
+                                        <label for="segundo_nombre">Segundo Nombre</label>
+                                        <input type="text" id="segundo_nombre" name="segundo_nombre" placeholder="Tu segundo nombre (opcional)">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="segundo_apellido">Segundo Apellido</label>
+                                        <input type="text" id="segundo_apellido" name="segundo_apellido" placeholder="Tu segundo apellido">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="numero_identificacion">Número de Identificación *</label>
+                                        <input type="text" id="numero_identificacion" name="numero_identificacion" placeholder="Número de identificación" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="genero">Género</label>
+                                        <select id="genero" name="genero" class="form-control">
+                                            <option value="Masculino">Masculino</option>
+                                            <option value="Femenino">Femenino</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="estado_civil">Estado Civil</label>
+                                        <select id="estado_civil" name="estado_civil" class="form-control">
+                                            <option value="Soltero/a">Soltero/a</option>
+                                            <option value="Casado/a">Casado/a</option>
+                                            <option value="Divorciado/a">Divorciado/a</option>
+                                            <option value="Viudo/a">Viudo/a</option>
+                                            <option value="Unión libre">Unión libre</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="action-buttons">
@@ -176,7 +184,13 @@
                             
                             <div class="form-group">
                                 <label for="ciudad">Ciudad *</label>
-                                <input type="text" id="ciudad" name="ciudad" placeholder="Ej: Tegucigalpa" required>
+                                <div class="input-group">
+                                    <input type="text" id="ciudad" name="ciudad" placeholder="Ej: Tegucigalpa" required>
+                                    <button type="button" id="btnAutoFillAddress" class="btn btn-primary">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        Obtener Ubicación
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -356,8 +370,10 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 0; /* Quitamos el margin-bottom porque ya usamos gap */
             position: relative;
+            min-height: 85px; /* Aseguramos espacio suficiente para el contenido */
+            width: 100%;
         }
 
         .form-group label {
@@ -391,6 +407,19 @@
             font-size: 14px;
             transition: border-color 0.3s ease;
             background: white;
+            color: #333;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+            white-space: normal;
+            text-overflow: ellipsis;
+            min-width: 200px;
+            max-width: 100%;
+            height: auto;
         }
 
         .form-group select:focus {
@@ -424,6 +453,53 @@
             color: #6c757d;
             margin-bottom: 25px;
             font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        #btnAutoFillAddress {
+            white-space: nowrap;
+            height: 100%;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        /* Estilos para el formulario personal */
+        .personal-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Dos columnas de igual tamaño */
+            gap: 30px; /* Espacio entre columnas */
+            margin-bottom: 20px;
+        }
+
+        .form-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Responsive: en pantallas pequeñas, una sola columna */
+        @media (max-width: 768px) {
+            .personal-form-grid {
+                grid-template-columns: 1fr; /* Una sola columna */
+                gap: 15px; /* Menos espacio entre elementos en móvil */
+            }
+
+            .form-column {
+                gap: 15px;
+            }
+        }
+
+        /* Mejoras visuales adicionales */
+        .info-section {
+            max-width: 900px; /* Aumentamos el ancho máximo para acomodar las dos columnas */
+            margin: 0 auto;
+            padding: 20px;
         }
 
         /* Error styling */
@@ -734,6 +810,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 stateInput.value = freshUserData.estado || '';
                 postalCodeInput.value = freshUserData.cod_postal || '';
                 countryInput.value = freshUserData.pais || '';
+            } else {
+                // Limpiar campos si no hay dirección
+                addressIdInput.value = '';
+                cityInput.value = '';
+                stateInput.value = '';
+                postalCodeInput.value = '';
+                countryInput.value = '';
             }
 
             Swal.close();
@@ -954,16 +1037,15 @@ document.addEventListener('DOMContentLoaded', function () {
         clearFormErrors(addressForm);
 
         const formData = {
+            id_usuario: initialUserData.id_usuario,
             id_direccion: addressIdInput.value || null,
-            id_persona: personalUserIdInput.value,  // Ahora usamos id_persona
             ciudad: cityInput.value.trim(),
             estado: stateInput.value.trim(),
             cod_postal: postalCodeInput.value.trim(),
-            pais: countryInput.value.trim(),
-            id_direccion_geo: null // Puedes ajustar esto si necesitas este campo
+            pais: countryInput.value.trim()
         };
 
-           // Validaciones
+        // Validaciones
         let isValid = true;
 
         if (!formData.ciudad) {
@@ -977,8 +1059,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (!isValid) return;
+
         try {
-            const response = await fetch(`${GEO_API_URL}/actualizar-direccion`, {
+            const response = await fetch(`${GEO_API_URL}/direcciones/gestionar`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -987,39 +1070,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify(formData)
             });
 
-            // Manejo mejorado de errores
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Error en la respuesta del servidor');
-            }
-
             const result = await response.json();
 
-            // Actualizar datos en localStorage
-            const updatedUserData = await reloadUserDataFromDB();
-            if (updatedUserData) {
-                localStorage.setItem('userData', JSON.stringify(updatedUserData));
-                // Actualizar el ID de dirección si es una nueva inserción
-                if (result.id_direccion) {
-                    addressIdInput.value = result.id_direccion;
-                }
+            if (!result.success) {
+                throw new Error(result.error || 'Error al procesar la solicitud');
+            }
+
+            // Actualizar los datos en el formulario con la respuesta
+            if (result.datos) {
+                addressIdInput.value = result.datos.id_direccion || '';
+                cityInput.value = result.datos.ciudad || '';
+                stateInput.value = result.datos.estado || '';
+                postalCodeInput.value = result.datos.cod_postal || '';
+                countryInput.value = result.datos.pais || '';
+
+                // Actualizar localStorage
+                localStorage.setItem('userData', JSON.stringify(result.datos));
             }
 
             Swal.fire({
                 icon: 'success',
-                title: 'Dirección guardada',
-                text: 'La información de dirección se actualizó correctamente',
+                title: '¡Éxito!',
+                text: result.mensaje,
                 timer: 2000,
                 showConfirmButton: false
             });
 
         } catch (error) {
-            console.error('Error al actualizar dirección:', error);
+            console.error('Error al gestionar dirección:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'Error al actualizar',
-                text: error.message || 'Ocurrió un error al guardar los cambios',
-                footer: typeof error === 'object' ? JSON.stringify(error) : ''
+                title: 'Error',
+                text: error.message || 'Ocurrió un error al guardar la dirección'
             });
         }
     });
@@ -1043,6 +1125,82 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     loadUserProfile();
+
+    const btnAutoFillAddress = document.getElementById('btnAutoFillAddress');
+
+    // Función para obtener la ubicación actual y llenar los campos
+    btnAutoFillAddress.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        Swal.fire({
+            title: 'Obteniendo ubicación...',
+            text: 'Por favor, permite el acceso a tu ubicación',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(async function(position) {
+                try {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    // Usar la API de OpenStreetMap para obtener la dirección
+                    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`);
+                    const data = await response.json();
+                    
+                    // Llenar los campos con la información obtenida
+                    cityInput.value = data.address.city || data.address.town || data.address.village || '';
+                    stateInput.value = data.address.state || data.address.county || '';
+                    postalCodeInput.value = data.address.postcode || '';
+                    countryInput.value = data.address.country || '';
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Ubicación obtenida!',
+                        text: 'Los campos han sido actualizados con tu ubicación actual.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                } catch (error) {
+                    console.error('Error al obtener la dirección:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo obtener la dirección automáticamente'
+                    });
+                }
+            }, function(error) {
+                console.error('Error al obtener la ubicación:', error);
+                let errorMessage = 'Error al obtener la ubicación';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Necesitamos permiso para acceder a tu ubicación';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'La información de ubicación no está disponible';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'Se agotó el tiempo para obtener la ubicación';
+                        break;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMessage
+                });
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Tu navegador no soporta geolocalización'
+            });
+        }
+    });
 });
 </script>
 @endpush

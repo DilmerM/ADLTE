@@ -51,7 +51,7 @@ mysqlConnection.connect((err) => {
 
 // Importar y usar las rutas de personas
 const personasRoutes = require('./Metodos_Crud/Personas');
-app.use('/api/personas', personasRoutes);
+app.use('/api/personas', personasRoutes(mysqlConnection));
 
 // Importar y usar las rutas de reservas2
 const reservas2Routes = require('./Metodos_Crud/Reservas2');
@@ -62,9 +62,6 @@ app.use('/api/usuarios', usuariosRoutes);
 
 
 // --- OTRAS RUTAS DE TU EQUIPO (se mantienen igual) ---
-
-// Módulo Personas (Osman)
-app.use('/personas', require('./Metodos_Crud/Personas.js')(mysqlConnection));
 
 // Módulo Geolocalización (Dilmer)
 const geolocalizacionRoutes = require('./Metodos_Crud/Geolocalizacion.js');
@@ -79,8 +76,8 @@ const servicioRoutes = require('./Metodos_Crud/Servicio.js');
 app.use('/servicios', servicioRoutes);
 
 // Módulo Reportes (Elizabeth)
-const reporteGeneradosrouter = require ('./Metodos_Crud/reportes.js');
-app.use('/reportes', reporteGeneradosrouter);
+const reporteGeneradosrouter = require ('./Metodos_Crud/reporte.js');
+app.use('/reporte', reporteGeneradosrouter);
 
 // Henrry Módulo Eventos
 const eventosRoutes = require('./Metodos_Crud/Eventos.js');

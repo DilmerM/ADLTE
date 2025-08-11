@@ -532,4 +532,56 @@ router.post('/actualizar-direccion', (req, res) => {
     }
 });
 
+// Agregar estas nuevas rutas al final del archivo, justo antes de module.exports = router;
+
+// Nueva ruta para gestionar direcciones de usuario
+router.post('/direcciones/gestionar', async (req, res) => {
+    try {
+        const { id_usuario, id_direccion, ciudad, estado, cod_postal, pais } = req.body;
+
+        // Obtener id_persona
+        const [personaResult] = await pool.query("CALL SP_ObtenerIdPersonaPorUsuario(?)", [id_usuario]);
+        if (!personaResult[0] || !personaResult[0].id_persona) {
+            return res.status(404).json({
+                success: false,
+                error: 'Usuario no encontrado'
+            });
+        }
+
+        const id_persona = personaResult[0].id_persona;
+
+        let resultado;
+        if (id_direccion) {
+            // Actualizar dirección existente
+            resultado = await pool.query(
+                "CALL SP_ActualizarDireccion(?, ?, ?, ?, ?, ?)",
+                [id_direccion, null, ciudad, estado, cod_postal, pais]
+            );
+        } else {
+            // Insertar nueva dirección
+            resultado = await pool.query(
+                "CALL SP_InsertarDireccion(?, ?, ?, ?, ?, ?, @nuevo_id); SELECT @nuevo_id AS id_direccion;",
+                [id_persona, ciudad, estado, cod_postal, pais, null]
+            );
+        }
+
+        // Obtener los datos actualizados
+        const [perfilActualizado] = await pool.query("CALL SP_ObtenerPerfilCompletoUsuario(?)", [id_usuario]);
+
+        res.json({
+            success: true,
+            mensaje: id_direccion ? 'Dirección actualizada' : 'Dirección creada',
+            datos: perfilActualizado[0][0]
+        });
+
+    } catch (error) {
+        console.error("Error en gestión de direcciones:", error);
+        res.status(500).json({
+            success: false,
+            error: 'Error al procesar la solicitud',
+            detalle: error.message
+        });
+    }
+});
+
 module.exports = router;//obligatorio
