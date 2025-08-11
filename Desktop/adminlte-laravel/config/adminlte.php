@@ -362,7 +362,7 @@ return [
                     'url' => '#',
                 ],
                  [
-                    'text' => 'Módulo 5',
+                    'text' => 'Persona',
                     'url' => '#',
                 ],
                  [
