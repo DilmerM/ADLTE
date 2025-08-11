@@ -363,7 +363,7 @@ return [
                 ],
                  [
                     'text' => 'Persona',
-                    'url' => '#',
+                    'url' => 'admin/persona',
                 ],
                  [
                     'text' => 'Reportes',
